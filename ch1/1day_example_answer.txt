@@ -1,0 +1,23 @@
+
+#첫번째 연습문제
+# 1번문제
+rep(seq(2,100,2),each=2)
+# 2번문제
+rep(1:5,times=1:5)
+
+#두번째 연습문제
+#1
+A=rep(seq(1,3,0.5),1:5)
+B=1:15
+#2
+M=matrix(c(B,A),ncol=5,byrow = T)
+#3
+colnames(M)<-paste0("Col",1:5)
+M
+#4
+M1<-M[c(1,4,6),c(1,3,5)]
+
+#세번째 연습분제
+#1
+x.list<-list(c(41,25,35),matrix(10:17,ncol=2),c("Kim","Lee","Cho"))
+x.list[[2]][3,2]
