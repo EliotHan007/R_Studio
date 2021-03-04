@@ -1,0 +1,89 @@
+### 복습 연습문제
+1번 
+a <- matrix(rep(seq(1,10,2),3),ncol=5,byrow=T)
+
+2번
+d <- data.frame(b,c)
+
+3번
+e <- list(a,d)
+e[[2]][2,2]
+
+
+######################### 1번 연습문제 #############################
+데이터 불러오기 연습문제
+
+# data= read.xlsx('광역시도별_연령성별_인구수.xlsx', startRow=2)
+# data= read.xlsx('시도별_가구_주택종류.xlsx', startRow=2)
+# data= read.xlsx('아파트매매_2019_강남구.xlsx', startRow=17)
+
+
+######################## 2번 연습문제 ##########################
+data(iris)
+head(iris)
+
+# 1. Sepal.Length 변수의 짝수행을 출력하시오 .
+iris$Sepal.Length[seq(2,150,2)]
+iris$Sepal.Length[1:150 %%2 == 0]
+
+# 2. Subset을 사용해서 변수 Species 에서 setosa 인 데이터를 추출하시오
+subset(iris,iris$Species=="setosa")
+iris[iris$Species=="setosa",]
+
+# 3. 2번에서 뽑은 데이터를 a1에 저장하고 Sepal.Length 가 5 보다 작은 Petal.Width 의 합을 구하시오
+a1<-iris[iris$Species=="setosa",]
+sum(a1[a1$Sepal.Length<5,"Petal.Width"])
+
+
+################################ merge 연습문제 ###################################
+
+a1 <-  data.frame(name=c("aa","bb","cc"),value=seq(10,20,length.out = 3))
+a2 <-  data.frame(name=c("cc","dd","ee"),value=seq(30,50,length.out = 3))
+a3 <-  data.frame(name=c("aa","dd","ee","ff"),value=seq(20,80,length.out = 4),any=seq(0,3,1))
+
+#  1. a1 와 a2 를 행결합 하시오
+rbind(a1,a2)
+
+# 2. a3 와 a1 를 행결합하시오
+install.packages("plyr")
+library(plyr)
+rbind.fill(a3,a1)
+
+# 3. a3 와 a2 를 name 기준으로 결합 하시오 (a3 데이터는 모두출력)
+merge(a3,a2,by="name",all.x=T)
+
+
+# 4. 3번 데이터를 z 에 저장하고 value.y 기준으로 정렬하시오
+z<-merge(a3,a2,by="name",all.x=T)
+z[order(z$value.y),]
+
+
+##################### iris 데이터 변형 연습문제 ###########################
+# iris에 Sepal.Length 변수가 5.8보다 크거나 같으면 1 아니면 0을 iris$new변수에 저장하시오
+
+iris$new <- ifelse(iris$Sepal.Length >= 5.8 , 1 , 0)
+iris
+
+
+#######################  for문 주사위 문제 ############################
+# 주사위를 10번 던진 값들의 합을 구하시오
+sum.y<-0
+for(i in 1:10){
+  sum.y<-sum.y + sample(1:6,1)
+}
+sum.y
+
+
+
+################# 복습하기 ########################
+############### 연습 문제 ##################
+# 1. a를 iris 데이터 밑에 추가하고 iris에 저장하시오
+a<-c(4,3,3,5,"setosa")
+data(iris)
+iris<-rbind(iris,a)
+
+
+# 2. 저장한 iris로 Sepal.Width가 Sepal.Width의 평균보다 큰값은 1 아니면 0인 변수 z1을 만드시오
+# 평균은 mean(iris$Sepal.Width)
+iris$z1 <- ifelse(iris$Sepal.Width>mean(iris$Sepal.Width),1,0)
+

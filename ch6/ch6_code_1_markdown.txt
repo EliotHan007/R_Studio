@@ -1,0 +1,99 @@
+---
+title: "R Notebook 연습해보기!"
+output: 
+  html_notebook: 
+    highlight: tango
+    theme: cerulean
+---
+
+***
+***
+  
+# 첫번째 제목 (Title)  
+## 두번째 제목 (Main Section)  
+### 세번째 제목 (Sub-Section)  
+#### 네번째 제목 (Sub-sub section)  
+  
+  
+*italics*  
+**bold**  
+`backticks`  
+~~cancelline~~  
+  
+  
+* 빨강
+  * 녹색
+    * 파랑  
+      
+Link: [네이버](https://naver.com)  
+
+***
+***
+
+
+
+
+<!-- ## 마크다운 환경설정 -->
+```{r include=FALSE}
+knitr::opts_chunk$set(echo=T,
+                      include=T,
+                      massage=F,
+                      warning=F,
+                      error=F)
+```
+
+### gapminder 데이터  
+```{r}
+data1
+```
+
+### insurance 데이터    
+```{r}
+insurance
+```
+
+### gapminder 요약  
+```{r}
+summary(data1)
+```
+
+### gapminder 데이터  요약  
+```{r}
+summary(insurance)
+```
+
+### ggplot 샘플 데이터 시각화  
+데이터를 시각화 하는 연습이며 밑에 네모칸제 편하게 작성 가능!  
+r notebook에서 바로 작성하기보다는 새 스크립트에서 작성 먼저 추천 
+
+```{r}
+ggplot(data1) +
+  aes(x = gdpPercap) + #x축 지정
+  aes(y = lifeExp) + #y축 지정
+  geom_point() + #나타낼 그림
+  aes(color = continent) + #색 지정
+  aes(shape = continent) + #모양 지정
+  aes(size = pop) #크기 지정
+```
+
+```{r}
+ggplot(data1) +
+  aes(x = gdpPercap) + #x축 지정
+  aes(y = lifeExp) + #y축 지정
+  geom_point() + #나타낼 그림
+  aes(color = continent) + #색 지정
+  aes(shape = continent) + #모양 지정
+  aes(size = pop) #크기 지정
+```
+
+
+### 외부 호출데이터 ggplot 연습
+외부 데이터 또한 편하게 작성 가능  
+```{r}
+insurance %>%
+  group_by(sex,smoker) %>%
+  summarise(mean = mean(charges)) %>%
+  ggplot(aes(x=smoker,y=mean,fill=sex)) +
+  geom_bar(stat="identity", position = "dodge")
+```
+

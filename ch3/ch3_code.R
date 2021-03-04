@@ -1,0 +1,591 @@
+# 데이터 분석가 _ Kevin          \
+#                                \
+# 스크립트 실행(Run a script)    \
+##  : Windows : 'Ctrl + Enter'   \
+##  : MAC     : 'Command + Enter'\
+#---------------------------------
+
+# 0 RStudio의 화면구성과 설정 ----
+
+# 'Tools' → 'Global Options' → 'Appearance'
+
+# Ctrl + Shift + N  :  새스크립트 불러오기
+
+##############################
+##  dplyr 패키지를 활용한 요약
+##############################
+
+# dplyr 패키지 설치
+install.packages('dplyr')
+library(dplyr)
+
+# SKT의 delivery 데이터 활용
+## 원본 출처 : SKT Big Data Hub(www.bigdatahub.co.kr)
+delivery = read.csv('SKT.csv', fileEncoding='UTF-8')
+head(delivery)
+
+str(delivery)
+## 1.1 slice( )로 특정 행만 불러오기
+## 행번호를 활용해서 특정 행을 불러오기
+## 햄 슬라이스...
+
+
+slice(delivery, c(1,3,5:10)) #row(obs.) 추출/row number 새로 생성
+## slice(데이터명, 잘라서가져올 행)
+## 1, 3, 5~10 행만 불러오기
+
+delivery[c(1,3,5:10),]#row 추출은 동일하나 /기존 row number 유지지
+
+
+##1.2 filter( )로 조건에 맞는 데이터 행만 불러오기
+filter(delivery, 시군구=='성북구') # $ 사용없이 접근 가능
+filter(delivery, delivery$시군구=='성북구') 
+
+## { filter(데이터명, 조건) }
+## '성북구' 데이터만 불러오기
+
+
+filter(delivery, 시군구=='성북구', 요일 %in% c('토', '일'), 업종=='피자' | 통화건수>=100) # 2개 값 이상 필터링 할경우 컬럼명 %in% c( , ) 사용
+
+## 복수의 조건 사용
+## filter(데이터명, 조건1, 조건2, 조건3, ...)
+## 조건문은 논리연산(==, !=, >, < 등)을 활용
+## 'OR'은 | 로 연결, 'AND'는 ,로 연결
+
+
+
+##1.3 arrange( )로 정렬하기(오름차순)
+arrange(delivery, 시군구, 요일, 업종)
+## arrange(데이터명, 정렬기준변수1, 정렬기준변수2, ...)
+
+arrange(delivery, desc(시군구), 요일, 업종)
+## 내림차순(Descending)으로 정렬할 때는 'desc' 옵션 활용
+
+
+
+##1.4 select( )로 변수를 선택하거나 제외하기
+select(delivery, 통화건수)
+select(delivery, -통화건수)
+
+# ":"를 활용한 순서대로 여러변수 선택하기 
+select(delivery, 시간대:통화건수)
+
+# "-"를 활용한 변수제외
+select(delivery, -요일)
+
+
+
+##1.5 distinct( )로 반복 내용제거하기
+distinct( delivery, 업종) # output data.frame
+class(unique(delivery$업종)) # output vecotor
+
+###################### 연습문제 ##########################
+data(iris)
+
+## 1.iris 데이터중 1부터 50행중 홀수, 100부터 150행중 짝수 선택
+slice(iris,seq(1,50,2),seq(100,150,2))
+iris[c(seq(1,50,2),seq(100,150,2)),] # row indexing
+
+## 2.iris 데이터중 Species가 "setosa"이면서 Sepal.Length가 5보다 큰 값을 추출하시오
+filter(iris, Species == 'setosa', Sepal.Length > 5)
+
+## 3.iris 데이터중 Sepal.Length는 내림차순 Sepal.Width는 오름차순으로 출력하시오
+arrange(iris, desc(Sepal.Length), Sepal.Width)
+
+## 4.iris 데이터중 "Sepal.Width" 와 "Species" 열을 선택하시오
+dplyr::select(iris, Sepal.Width, Species)
+
+## 5.iris 데이터중 "Species"의 종류를 확인하시오
+distinct(iris, Species)
+unique(iris$Species)
+
+str(iris)
+###########################################################
+
+
+##1.6 mutate( )로 기존 변수를 활용한 임시 변수 만들기
+
+delivery <- mutate(delivery, 새요일=paste0(요일, '요일'))
+delivery$새요일 <- paste0(delivery$요일, '요일') #위와 동일 이방법이 더 좋음
+
+head(delivery)
+# 변수 추가 
+# delivery$새요일 = paste0(delivery$요일, '요일')
+
+##1.7 count( )로 그룹별 개수 세기
+count(delivery, 시군구) #시군구 별 obs. 수
+
+
+##1.8 group_by( )로 그룹 지정해주기
+delivery_grp = group_by(delivery, 시군구)
+
+
+
+##1.9 summarize( )로 요약 하기
+
+
+summarise(delivery, mean=mean(통화건수), m = min(통화건수), M = max(통화건수))
+summarise(delivery_grp, mean=mean(통화건수), m = min(통화건수), M = max(통화건수))
+## 원본 데이터는 전체 요약, 그룹이 지정된 데이터는 그룹별 요약
+
+summarise(delivery_grp, length(통화건수))
+delivery_grp %>% count(통화건수) #???위와 동일
+
+
+
+
+##1.10 top_n( )으로 상위 관측치 확인하기  
+
+top_n(delivery, 5, 통화건수)
+
+top_n(delivery_grp, 5, 통화건수)
+
+
+###################### 연습문제 ##########################
+data(iris)
+
+## 6.iris 데이터중 "Sepal.Length" 와 "Sepal.Width" 두변수의 합을 Sepal_sum이라는 변수에 저장하시오
+mutate(iris, Sepal_sum = (Sepal.Length + Sepal.Width )
+
+## 7.iris 데이터중 "Species"의 종별 개수를 확인하시오
+count(iris, Species)
+
+## 8.iris 데이터중 Sepal.Length의 합과 Sepal.Width의 평균을 구하시오
+summarise(iris, sum=sum(Sepal.Length), mean=mean(Sepal.Width))
+
+## 9.iris 데이터중 "Petal.Width"의 상위 5개의 값을 출력
+top_n(iris, 5, Petal.Width) # 중복 값이 있는 6개 출력력
+
+###########################################################
+
+
+##1.11 파이프라인( %>% )을 활용한 연속작업
+delivery %>% 
+  filter(업종=='중국음식') %>%
+  group_by(시군구) %>% 
+  summarise(mean_call = mean(통화건수)) %>% 
+  arrange(desc(mean_call))
+
+
+# 데이터 저장
+new_data = delivery %>% 
+  filter(업종=='중국음식') %>% 
+  group_by(시군구) %>% 
+  summarise(mean_call = mean(통화건수)) %>% 
+  arrange(desc(mean_call))
+
+
+# 결과를 csv파일로 저장
+write.csv(new_data, 'result.csv', row.names=FALSE) 
+## 작업폴더(Working Directory)에 'result.csv'이름으로 저장
+
+
+
+##1.12 ungroup( )의 활용
+
+delivery %>% 
+  filter(업종=='중국음식') %>% 
+  group_by(시간대, 시군구) %>% 
+  summarise(mean_call = mean(통화건수))
+
+
+# 시군구별 상위 3대 시간대 확인
+delivery %>% 
+  filter(업종=='중국음식') %>% # 필요한 row로 필터링
+  group_by(시간대, 시군구) %>% # group 기준 선정
+  summarise(mean_call = mean(통화건수)) %>% 
+  ungroup() %>%   #group_by 기준을 변경하기 전에  ungroup필요
+  group_by(시군구) %>% 
+  top_n(3, mean_call) %>% 
+  arrange(시군구, desc(mean_call))
+
+## summarise( )로 요약할 떄의 그룹과
+## top_n( )등의 선택에서의 그룹이 다를 때는
+## 중간에 ungroup( )을 넣어서 그룹 지정 해제
+
+
+########################### 연습문제 #############################
+
+##2 (실습) 보험료 데이터 요약하기
+
+# 예제 데이터 불러오기 
+ins = read.csv('insurance.csv')
+
+
+#1 데이터 ins에서 sex가 female인 관측치로 region별 관측치 수 계산
+
+
+#2 charges가 10000이상인 관측치 중에서 smoker별 평균 age 계산
+
+
+#3 age가 40 미만인 관측치 중에서 sex, smoker별 charges의 평균과 최댓값 계산   
+
+
+# 데이터를 csv파일로 저장하기
+# 위에서 작업한 내용 중 3번을 csv파일로 저장해보기
+
+
+
+########################################################################
+
+
+
+#################################################################
+############################### tidyr ##################################
+#################################################################
+
+
+##1 tidyr 패키지를 활용한 데이터 처리 
+## 데이터 정렬 형태 변경( wide <-> long )
+
+
+# 예제 데이터 불러오기  
+head(delivery)
+
+# tidyr 패키지 불러오기
+install.packages('tidyr')
+library(tidyr)
+library(dplyr)
+## 파이프라인(%>%)을 쓰기 위해서 불러오기
+
+
+# group_by( ) %>% summarise( )로 데이터 요약하기
+aggr = delivery %>% 
+  group_by(시군구,시간대,요일,업종) %>% 
+  summarise(통화건수=sum(통화건수)) %>% 
+  as.data.frame()
+aggr
+
+
+##1.1 spread( )로 데이터를 여러 열로 나누기(long -> wide)
+## spread(데이터이름, 기준변수이름, 나열할 값)
+aggr %>% 
+  spread(업종, 통화건수) 
+
+aggr_wide = aggr %>% spread(업종, 통화건수) 
+aggr_wide
+
+
+##1.2 replace_na( )로 결측값 처리하기
+## replace_na(list(변수1=값, 변수2=값, ...))
+aggr_wide %>% replace_na(list(족발보쌈=999, 중국음식=0, 치킨=0))
+
+
+aggr_wide2 = aggr_wide %>% replace_na(list(족발보쌈=0, 중국음식=0, 치킨=0, 피자=0))
+
+
+##1.3 drop_na( )로 결측값을 포함한 관측치 버리기
+## drop_na(결측값을 찾을 변수1, 변수2, ...) 
+aggr_wide %>% drop_na()
+aggr_wide %>% drop_na(치킨, 피자)
+
+
+
+
+## 반대로!!    
+
+##1.4 gather( )로 여러 열을 한 열+구분변수로 만들기(wide->long)
+## gather(데이터이름, 새기준변수이름, 새변수이름, 모을 변수들)
+aggr_wide2 %>% gather(Category, Count, 족발보쌈, 중국음식, 피자, 치킨)
+
+aggr_long = aggr_wide2 %>% gather(Category, Count, -(시군구:요일))
+## 순서대로 시군구부터 요일까지를 뺀 나머지 변수를 선택
+
+aggr_long
+
+
+##1.5 complete( )로 빠져있는 조합 채우기
+
+nrow(aggr_wide2)
+## 3947 !=  4200 = 25(시군구)*24(시간대)*7(요일)
+
+aggr_wide2 %>% complete(시군구, 시간대, 요일)
+
+# fill= 옵션으로 빈값 채우기                           
+aggr_wide2 %>% complete(시군구, 시간대, 요일, fill=list(족발보쌈=0, 중국음식=0, 치킨=0, 피자=0))
+
+
+
+##2 (실습) 서울시 지하철 이용데이터 
+# 출처 : 공공데이터포털(www.data.go.kr)
+
+# 데이터 불러오기
+## 역변호가 150인 서울역 데이터 
+library(openxlsx)
+subway_2017 = read.xlsx('subway_1701_1709.xlsx')
+subway_2017
+
+
+# 데이터의 구조 확인
+str(subway_2017)
+
+# 첫 10개 관측치만 확인하기
+head(subway_2017, n=10)
+
+# 변수이름 확인 ->이름변환
+names(subway_2017)
+names(subway_2017)[6:25]
+
+substr(names(subway_2017)[6:25], 1, 2)
+## 첫 두 글자만 선택 
+
+paste0('H', substr(names(subway_2017)[6:25], 1, 2))
+## 앞에 'H'를 붙임
+
+names(subway_2017)[6:25] <- paste0('H', substr(names(subway_2017)[6:25], 1, 2))
+## '='을 활용해서 변수이름 업데이트
+
+names(subway_2017)
+
+
+######################## 연습문제 #############################
+
+# (실습) gather( ) 함수를 활용하여 H05부터 H24까지 변수를 모아
+# '시간대'와 '승객수'으로 구분하는 데이터 subway2 만들기
+subway2 = NA
+
+
+## 위에서 만든 subway2 데이터와 dplyr 패키지를 활용하여
+
+# 역명/시간대별 전체 승객수 합계 계산 (승객수 합계의 내림차순으로 정렬)
+subway2 %>% NA
+
+
+# 위의 결과를 spread( ) 함수를 활용해서 표 형태로 변환
+subway2 %>% NA
+
+
+# 역명/시간대/구분별 전체 승객수 합계 계산
+subway2 %>% NA
+
+
+# 2월 한달간 역명/시간대/구분별 전체 승객수 합계 계산
+subway2 %>% NA
+
+
+####################################
+########## 결측치 처리 #############
+####################################
+
+# 결측치(Missing Value)
+# 누락된 값, 비어있는 값
+# 함수 적용 불가, 분석 결과 왜곡
+# 제거 후 분석 실시
+
+
+# 결측치 확인하기
+
+df <- data.frame(sex = c("M", "F", NA, "M", "F"),
+                 score = c(5, 4, 3, 4, NA))
+
+is.na(df)
+table(is.na(df))
+table(is.na(df$sex))
+
+summary(df)
+
+
+# 결측치 제거
+library(dplyr) # dplyr 패키지 로드
+df %>% filter(is.na(score))
+df %>% filter(!is.na(score))  # score 결측치 제거
+
+
+df %>% filter(!is.na(score) & !is.na(sex))
+
+df_nomiss2 <- na.omit(df)  # 모든 변수에 결측치 없는 데이터 추출
+df_nomiss2                 # 출력
+
+
+# 결측치 대체하기
+df
+df$score <- ifelse(is.na(df$score), 4, df$score)  # math가 NA면 55로 대체
+table(is.na(df$score))                               # 결측치 빈도표 생성
+
+
+mpg <- as.data.frame(ggplot2::mpg)           # mpg 데이터 불러오기
+mpg[c(65, 124, 131, 153, 212), "hwy"] <- NA  # NA 할당하기
+
+apply(mpg,2,function(x){sum(is.na(x))})
+mpg[is.na(mpg$hwy),"hwy"] <- mean(mpg$hwy,na.rm = T)
+
+
+iinstall.packages("zoo")
+library(zoo)
+
+na.locf0(c(NA, NA, "A", NA, "B"), fromLast = FALSE) # 1
+## [1] NA  NA  "A" "A" "B"
+
+na.locf0(c(NA, NA, "A", NA, "B"), fromLast = TRUE) # 2
+## [1] "A" "A" "A" "B" "B"
+
+
+##############################################################################
+
+#통계분석
+
+#packages 설치
+# 설치는 한번만 하시면 됩니다
+install.packages("ppcor")
+install.packages("psych")
+install.packages("PerformanceAnalytics");
+install.packages("corrplot")
+install.packages("moonBook")
+
+#1. 상관관계분석(Correlation)
+height<-c(164,175,166,185)
+weight<-c(62,70,64,86)
+
+cor(height,weight)
+round(cor(height,weight),3)
+
+
+library(moonBook)
+data(acs)
+library(psych)
+str(acs)
+acs2<-acs[,c(1,6:9)]
+cor(acs2)
+#na가 존재할시 na 제외후 계산
+cor(acs2,use="na.or.complete")
+
+#산점도행렬
+pairs.panels(acs2)
+
+
+#install.packages("PerformanceAnalytics");  
+library(PerformanceAnalytics)
+#산점도행렬
+chart.Correlation(acs2, histogram=TRUE, pch=19)
+
+
+
+#킹콩 data의 추가 -> 데이터 하나의 큰 영향
+
+dat<-data.frame(
+  a=c(15,20,25,27,31,25,23,23,42,12,34,23,40),
+  b=c(50,55,52,52,56,54,62,56,70,46,43,50,54)
+)
+plot(dat$a,dat$b)
+abline(lm(dat$b~dat$a))
+cor(dat$a,dat$b)
+
+
+#outlier 추가
+dat[14,]<-c(200,230)
+plot(dat$a,dat$b)
+abline(lm(dat$b~dat$a))
+cor(dat$a,dat$b)
+
+
+#heatmap expression
+library(corrplot)
+
+corrplot(cor(acs2,use="na.or.complete"))
+corrplot(cor(acs2,use="na.or.complete"),method="square")
+corrplot(cor(acs2,use="na.or.complete"),method="ellipse")
+corrplot(cor(acs2,use="na.or.complete"),method="number")
+corrplot(cor(acs2,use="na.or.complete"),method="shade")
+corrplot(cor(acs2,use="na.or.complete"),method="color")
+corrplot(cor(acs2,use="na.or.complete"),method="pie")
+
+##################### 연습 문제 ###################################
+data(iris)
+
+#iris_a 에 연속형변수들인 1열~ 4열을 저장 하고 상관관계 확인해보기 (pairs.panels , chart.Correlation)
+
+
+
+###################################################################
+###################################################################
+
+
+
+
+
+
+
+######################### 추가 ################################
+
+################ dplyr 더 연습해보기!! ########################
+
+##3 (실습) 국민건강보험공단 데이터 요약
+
+# 국민건강보험공단 진료내역정보 
+## http://data.go.kr/dataset/15007115/fileData.do
+## 원본 데이터에서 외래 진료 건과 주요 변수만 선택
+
+# 데이터가 약 200만개이므로 시간이 좀 걸립니다
+NHIS <- read.csv("NHIS.csv")
+#################
+
+
+View(NHIS)
+str(NHIS)
+head(NHIS)
+
+# IDV_ID  가입자일련번호
+# SEX  성별
+# AGE_GROUP  연령대코드
+# FORM_CD  서식코드
+# DSBJT_CD  진료과목코드 
+# MAIN_SICK  주상병코드 
+# VSCN  요양일수
+# RECN  입내원일수
+# EDEC_TRAMT  심결요양급여비용총액
+# EDEC_SBRDN_AMT  심결본인부담금
+
+
+# 성 / 연령대별 진료건수 계산  (진료건수 기준 내림차순 정렬)
+
+NHIS %>% 
+  group_by(SEX, AGE_GROUP) %>% 
+  summarise(n=length(SEX)) %>% 
+  arrange(desc(n))
+
+NHIS %>% 
+  count(SEX, AGE_GROUP) %>% 
+  arrange(desc(n))
+
+
+# 성별/연령대별 환자 분포 확인
+## distinct() : 중복값 제거 
+
+
+NHIS %>%
+  dplyr::select(IDV_ID, SEX, AGE_GROUP) %>%
+  unique() %>%
+  count(SEX, AGE_GROUP)
+
+
+# 성 / 연령대 / 진료과목별 환자수  계산  (환자수 기준 내림차순 정렬)
+
+
+NHIS %>%
+  dplyr::select(SEX, AGE_GROUP,DSBJT_CD, IDV_ID) %>%
+  unique() %>%
+  count(SEX, AGE_GROUP,DSBJT_CD) %>%
+  arrange(desc(n))
+
+
+# 성별/연령대별 평균 요양일수/입내원일수/급여비용/본인부담금액 계산 후 급여비용 내림차순으로 정렬
+
+
+NHIS %>%
+  group_by(SEX, AGE_GROUP) %>%
+  summarise(m1=mean(VSCN), m2=mean(RECN), m3=mean(EDEC_TRAMT), m4=mean(EDEC_SBRDN_AMT)) %>%
+  arrange(desc(m3))
+
+
+############################ 연습 문제 ################################
+
+# 성별/연령대별 3개 최고빈도 주상병코드
+## top_n(n=k, wt=기준변수) : 기준변수를 기준으로 상위 k개 관측치 선택
+
+
+
+## 주상병코드 조회 (MAIN_SICK)
+
+
+
+

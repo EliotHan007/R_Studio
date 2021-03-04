@@ -1,0 +1,145 @@
+###################### 연습문제 ##########################
+data(iris)
+
+## 1.iris 데이터중 1부터 50행중 홀수, 100부터 150행중 짝수 선택
+slice(iris,c(seq(1,50,2),seq(100,150,2)))
+
+## 2.iris 데이터중 Species가 "setosa"이면서 Sepal.Length가 5보다 큰 값을 추출하시오
+filter(iris,Species=="setosa",Sepal.Length>5)
+
+## 3.iris 데이터중 Sepal.Length는 내림차순 Sepal.Width는 오름차순으로 출력하시오
+arrange(iris,desc(Sepal.Length),Sepal.Width)
+
+## 4.iris 데이터중 "Sepal.Width" 와 "Species" 열을 선택하시오
+dplyr::select(iris,Sepal.Width,Species)
+
+## 5.iris 데이터중 "Species"의 종류를 확인하시오
+distinct(iris,Species)
+
+###########################################################
+
+
+###################### 연습문제 ##########################
+data(iris)
+
+## 6.iris 데이터중 "Sepal.Length" 와 "Sepal.Width" 두변수의 합을 Sepal_sum이라는 변수에 저장하시오
+mutate(iris,Sepal_sum=Sepal.Length+Sepal.Width)
+
+## 7.iris 데이터중 "Species"의 종별 개수를 확인하시오
+count(iris,Species)
+
+## 8.iris 데이터중 Sepal.Length의 합과 Sepal.Width의 평균을 구하시오
+summarise(iris,sum=sum(Sepal.Length),mean=mean(Sepal.Width))
+
+## 9.iris 데이터중 "Petal.Width"의 상위 5개의 값을 출력
+top_n(iris,5,Petal.Width)
+
+###########################################################
+
+########################### 연습문제 #############################
+
+##2 (실습) 보험료 데이터 요약하기
+
+# 예제 데이터 불러오기 
+ins = read.csv('insurance.csv')
+
+
+#1 데이터 ins에서 sex가 female인 관측치로 region별 관측치 수 계산
+ins %>% 
+  filter(sex=='female') %>% 
+  count(region)
+
+
+#2 charges가 10000이상인 관측치 중에서 smoker별 평균 age 계산
+ins %>% 
+  filter(charges >= 10000) %>% 
+  group_by(smoker) %>% 
+  summarise(mean(age))
+
+
+#3 age가 40 미만인 관측치 중에서 sex, smoker별 charges의 평균과 최댓값 계산   
+ins %>% 
+  filter(age < 40) %>% 
+  group_by(sex, smoker) %>% 
+  summarise(mean(charges), 
+            max(charges))
+
+
+# 데이터를 csv파일로 저장하기
+# 위에서 작업한 내용 중 3번을 csv파일로 저장해보기
+
+result = ins %>% 
+  filter(age < 40) %>% 
+  group_by(sex, smoker) %>%
+  summarise(mean(charges), 
+            max(charges))
+write.csv(result, 'result.csv')
+
+
+#################################################################
+
+######################## 연습문제 #############################
+
+# (실습) gather( ) 함수를 활용하여 H05부터 H24까지 변수를 모아
+# '시간대'와 '승객수'으로 구분하는 데이터 subway2 만들기
+subway2 = gather(subway_2017, 시간대, 승객수, H05:H24)
+
+
+## 위에서 만든 subway2 데이터와 dplyr 패키지를 활용하여
+
+# 역명/시간대별 전체 승객수 합계 계산 (승객수 합계의 내림차순으로 정렬)
+subway2 %>% 
+  group_by(역명, 시간대) %>% 
+  summarise(SUM = sum(승객수)) %>% 
+  arrange(desc(SUM))
+
+# 위의 결과를 spread( ) 함수를 활용해서 표 형태로 변환
+subway2 %>% 
+  group_by(역명, 시간대) %>% 
+  summarise(SUM = sum(승객수)) %>% 
+  spread(시간대, SUM)
+
+# 역명/시간대/구분별 전체 승객수 합계 계산
+subway2 %>% 
+  group_by(역명, 시간대, 구분) %>% 
+  summarise(SUM = sum(승객수)) %>% 
+  arrange(desc(SUM))
+
+# 2월 한달간 역명/시간대/구분별 전체 승객수 합계 계산
+subway2 %>% 
+  filter(월==2) %>% 
+  group_by(역명, 시간대, 구분) %>% 
+  summarise(SUM = sum(승객수)) %>% 
+  arrange(desc(SUM))
+
+##############################################################################
+
+##################### 연습 문제 ###################################
+
+data(iris)
+
+#iris_a 에 연속형변수들인 1열~ 4열을 저장 하고 상관관계 확인해보기 (pairs.panels , chart.Correlation)
+iris_a<-iris[,1:4]
+pairs.panels(iris_a)
+chart.Correlation(iris_a, histogram=TRUE, pch=19)
+###################################################################
+
+############################ 연습 문제 ################################
+
+# 성별/연령대별 3개 최고빈도 주상병코드
+## top_n(n=k, wt=기준변수) : 기준변수를 기준으로 상위 k개 관측치 선택
+## 주상병코드 조회 (MAIN_SICK)
+
+
+NHIS %>%
+   count(SEX, AGE_GROUP, MAIN_SICK) %>%
+   group_by(SEX, AGE_GROUP) %>%
+   top_n(n=3 , wt=n) %>%
+   arrange(SEX, AGE_GROUP, desc(n))
+
+NHIS %>%
+  group_by(SEX, AGE_GROUP, MAIN_SICK) %>%
+  summarise(n=n()) %>%
+  top_n(n=3 , wt=n) %>%
+  arrange(SEX, AGE_GROUP, desc(n))
+

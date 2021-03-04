@@ -1,0 +1,149 @@
+#####################################
+########### 연습해보기  ################
+##################################
+
+###
+
+head(insurance)
+
+#1. bmi에 따라서 charges가 어떻게 변하는지 점그래프를 그리시오
+## region을 색으로 지정
+## sex를 모양으로 지정
+
+## 투명도는 0.7
+
+
+
+insurance %>%
+  
+ggplot(aes(x=bmi,y=charges,color=region,shape=sex)) +
+  
+geom_point(alpha=0.7)
+
+
+
+
+#2. age에 따라서 charges가 어떻게 변하는지 점그래프를 그리시오
+
+## bmi 색으로 지정
+## smoker를 모양으로 지정
+
+
+
+insurance %>%
+  
+ggplot(aes(x=age,y=charges,color=bmi,shape=smoker)) +
+  
+geom_point()
+
+
+
+
+###########################################
+############### 연습해보기  ###############
+###########################################
+head(insurance)
+
+#1. insurance 데이터에서 region별 중앙값을 구한후 막대그래프를 그리시고
+##  region을 색으로 지정
+## 투명도는 0.7
+
+
+insurance %>%
+  group_by(region) %>%
+  summarisemedian = median(charges)) %>%
+  ggplot(aes(x=region,y=median,fill=region)) +
+  geom_bar(stat="identity")
+
+
+#2. insurance 데이터에서 sex, smoker별 중앙값을 구한후 막대그래프를 그리시고
+## x축은 smoker이며 sex를 색으로 구분
+##  region을 색으로 지정
+## 투명도는 0.7
+
+insurance %>%
+  group_by(sex,smoker) %>%
+  summarisemedian= median(charges)) %>%
+  ggplot(aes(x=smoker,y=median,fill=sex)) +
+  geom_bar(stat="identity")
+
+
+insurance %>%
+  group_by(sex,smoker) %>%
+  summarisemedian= median(charges)) %>%
+  ggplot(aes(x=smoker,y=median,fill=sex)) +
+  geom_bar(stat="identity", position = "dodge")
+
+
+
+
+###########################################
+############### 연습해보기  ###############
+###########################################
+
+#1 insurance데이터에서 children이 0보다 크면 1, 0이면 0인 변수 ch_data를 만드시오
+insurance <- insurance %>%
+  mutate(ch_data = ifelse(children==0,0,1))
+
+#2 insurance데이터를 활용해서 상자그래프(boxplot)를 그리시오
+## x축은 region y축은 charges이며 ch_data를 색으로 구분
+
+insurance %>%
+  ggplot(aes(x=region,y=charges,fill=factor(ch_data))) + geom_boxplot()
+
+#3 insurance데이터를 활용해서 히스토그램(histogram)을 그리시오
+## x축은 charges ch_data를 색으로 구분
+## region마다 4개의 그래프를 그리시오
+
+insurance %>%
+  ggplot(aes(x=charges,fill=factor(ch_data))) + geom_histogram() +
+  facet_grid(~region)
+
+
+#4 insurance데이터를 활용해서 막대그래프를 그리시오
+## x축은 region y축은 charges이며 ch_data를 색으로 구분
+## (누적 막대그래프와 ch_data별 비교 막대그래프)
+
+insurance %>%
+  ggplot(aes(x=region, y=charges, fill=factor(ch_data))) +
+  geom_bar(stat="identity")
+
+insurance %>%
+  ggplot(aes(x=region, y=charges, fill=factor(ch_data))) +
+  geom_bar(stat="identity",position = "dodge")
+
+
+options("scipen" = 100)  
+
+
+
+###########################################
+############### 연습해보기  ###############
+###########################################
+
+# (실습) NHIS에서 AGE_GROUP, DSBJT_CD별 EDEC_TRAMT 평균 계산 후 저장
+#        저장된 데이터로 열지도 시각화
+
+NHIS <- read.csv("NHIS.csv")
+
+# agg3 = NHIS %>%
+#         group_by(AGE_GROUP, DSBJT_CD) %>%
+#         summarise(mean_AMT = mean(EDEC_TRAMT))
+# agg3
+# 
+# 
+# agg3 %>%
+#   ggplot(aes(AGE_GROUP, DSBJT_CD, fill=mean_AMT)) +
+#   geom_tile() +
+#   scale_fill_distiller(palette='Spectral')
+
+############################################################
+
+
+### 이러한 tidyr을 통해서 데이터를 시각화하기
+### 시간대별로 승객 합계 막대차트로 그려보기!
+subway2 %>% 
+  group_by(역명, 시간대) %>% 
+  summarise(SUM = sum(승객수)) %>% 
+  arrange(desc(SUM)) %>%
+  ggplot(aes(x=시간대,y=SUM,fill=시간대)) + geom_bar(stat="identity")

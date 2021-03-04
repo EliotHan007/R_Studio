@@ -1,0 +1,38 @@
+################################
+### facet_grid로 한번에 그려보기
+################################
+
+# train %>%
+#   ggplot(aes(hour, count)) +
+#   geom_point(position = position_jitter(), aes(color = temp)) +
+#   scale_color_gradient(low = "#88d8b0", high = "#ff6f69") +
+#   facet_grid(~workingday)
+
+################################
+
+
+
+###################
+# 이상한 점을 확인하고, 수정하여 다시 그리시오!
+###################
+
+# train %>%
+#   mutate(season_new = ifelse(month %in% c(3,4,5),1,
+#                              ifelse(month %in% c(6,7,8),2,
+#                                     ifelse(month %in% c(9,10,11),3,4)))) %>%
+#   group_by(season_new,hour) %>%
+#   summarise(mean = mean(count)) %>%
+#   ggplot(aes(x=hour,y=mean,group=factor(season_new),color=factor(season_new))) + geom_line()
+
+
+##############################
+
+
+
+# 0을 전처리 하기!
+# 중앙값으로 대체하기!
+
+# train[train$windspeed==0,"windspeed"] <- median(train$windspeed)
+# train %>%
+#   ggplot(aes(x=windspeed)) + geom_histogram(fill="blue")
+
