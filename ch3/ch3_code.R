@@ -157,6 +157,7 @@ summarise(iris, sum=sum(Sepal.Length), mean=mean(Sepal.Width))
 top_n(iris, 5, Petal.Width) # 중복 값이 있는 6개 출력력
 
 ###########################################################
+library(dplyr)
 
 
 ##1.11 파이프라인( %>% )을 활용한 연속작업
@@ -194,7 +195,7 @@ delivery %>%
   filter(업종=='중국음식') %>% # 필요한 row로 필터링
   group_by(시간대, 시군구) %>% # group 기준 선정
   summarise(mean_call = mean(통화건수)) %>% 
-  ungroup() %>%   #group_by 기준을 변경하기 전에  ungroup필요
+  ungroup() %>%   #group_by 기준을 변경하기 전에  ungroup필요: 시간대, 시군구 -> 시군구 ***데이타에는 시간대가 포함되어 있음
   group_by(시군구) %>% 
   top_n(3, mean_call) %>% 
   arrange(시군구, desc(mean_call))
@@ -210,21 +211,34 @@ delivery %>%
 
 # 예제 데이터 불러오기 
 ins = read.csv('insurance.csv')
-
-
+str(ins)
+head(ins)
 #1 데이터 ins에서 sex가 female인 관측치로 region별 관측치 수 계산
 
+ins %>% 
+  filter(sex == 'female') %>% 
+  count(region)
+
+#? 다른방법
+ins %>% filter(sex == 'female') %>% group_by(region) %>% summarize(sum_age = ???)
 
 #2 charges가 10000이상인 관측치 중에서 smoker별 평균 age 계산
-
+ins %>% 
+  filter(charges >= 10000) %>% 
+  group_by(smoker) %>% 
+  summarise(mean=mean(age))
 
 #3 age가 40 미만인 관측치 중에서 sex, smoker별 charges의 평균과 최댓값 계산   
+results <- ins %>% 
+  filter(age < 40) %>% 
+  group_by(sex,smoker) %>% 
+  summarise(mean=mean(charges), max=max(charges))
 
 
 # 데이터를 csv파일로 저장하기
 # 위에서 작업한 내용 중 3번을 csv파일로 저장해보기
 
-
+write.csv(results,'results.csv')
 
 ########################################################################
 
@@ -258,11 +272,11 @@ aggr
 
 
 ##1.1 spread( )로 데이터를 여러 열로 나누기(long -> wide)
-## spread(데이터이름, 기준변수이름, 나열할 값)
+## spread(데이터이름, 기준변수이름(컬럼), 나열할 값)
 aggr %>% 
   spread(업종, 통화건수) 
 
-aggr_wide = aggr %>% spread(업종, 통화건수) 
+aggr_wide = aggr %>% spread(업종, 통화건수) # wide spread할 때 NA 데이타 발생할 수 있음
 aggr_wide
 
 
@@ -285,7 +299,7 @@ aggr_wide %>% drop_na(치킨, 피자)
 ## 반대로!!    
 
 ##1.4 gather( )로 여러 열을 한 열+구분변수로 만들기(wide->long)
-## gather(데이터이름, 새기준변수이름, 새변수이름, 모을 변수들)
+## gather(데이터이름, 새기준변수이름(컬럼), 새변수이름, 모을 변수들)
 aggr_wide2 %>% gather(Category, Count, 족발보쌈, 중국음식, 피자, 치킨)
 
 aggr_long = aggr_wide2 %>% gather(Category, Count, -(시군구:요일))
@@ -327,7 +341,7 @@ names(subway_2017)
 names(subway_2017)[6:25]
 
 substr(names(subway_2017)[6:25], 1, 2)
-## 첫 두 글자만 선택 
+## 첫 두 글자만 선택 1,2
 
 paste0('H', substr(names(subway_2017)[6:25], 1, 2))
 ## 앞에 'H'를 붙임
@@ -342,25 +356,37 @@ names(subway_2017)
 
 # (실습) gather( ) 함수를 활용하여 H05부터 H24까지 변수를 모아
 # '시간대'와 '승객수'으로 구분하는 데이터 subway2 만들기
-subway2 = NA
+subway2 = gather(subway_2017,Hour, Count, H05:H23)
+#-> Hour 컬럼에는 기존 H00 컬럼값이 들어가고, Count에는 해당 value가 들어감
 
 
 ## 위에서 만든 subway2 데이터와 dplyr 패키지를 활용하여
 
 # 역명/시간대별 전체 승객수 합계 계산 (승객수 합계의 내림차순으로 정렬)
-subway2 %>% NA
+results <- subway2 %>% 
+  group_by(역명,Hour) %>% 
+  summarise(승객수=sum(Count)) %>% 
+  arrange(desc(승객수))
 
 
 # 위의 결과를 spread( ) 함수를 활용해서 표 형태로 변환
 subway2 %>% NA
-
+results %>% spread(Hour,승객수)
 
 # 역명/시간대/구분별 전체 승객수 합계 계산
-subway2 %>% NA
+subway2 %>%
+  group_by(역명, Hour) %>% 
+  summarise(승객수 = sum(Count)) %>% 
+  arrange(desc(승객수))
 
 
 # 2월 한달간 역명/시간대/구분별 전체 승객수 합계 계산
-subway2 %>% NA
+subway2 %>% 
+  filter(월 == '2') %>% 
+  group_by(역명, Hour, 구분) %>% 
+  summarise(승객수 = sum(Count)) %>% 
+  arrange(desc(승객수))
+
 
 
 ####################################

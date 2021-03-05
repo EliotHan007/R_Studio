@@ -1,4 +1,4 @@
-# 데이터 분석가 _ Kevin          \
+﻿# 데이터 분석가 _ Kevin          \
 #                                \
 # 스크립트 실행(Run a script)    \
 ##  : Windows : 'Ctrl + Enter'   \
