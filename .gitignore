@@ -27,7 +27,4 @@ vignettes/*.pdf
 *.knit.md
 # R Environment Variables
 .Renviron
-ch4_code.R
-ch5_code.R
-ch6_code_2_shiny.R
-ch7_code.R
+
